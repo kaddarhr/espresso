@@ -8,13 +8,16 @@ Note:
 	  internal implementation can change without treating it as "breaking change".
 """
 import json
+import traceback
+from ast import mod
+from importlib import import_module
 from typing import Any
 
 from werkzeug.routing import Rule
 
 import frappe
 import frappe.client
-from frappe import _, get_newargs, is_whitelisted
+from frappe import _, get_newargs, is_whitelisted, log
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.handler import is_valid_http_method, run_server_script, upload_file
 
@@ -168,7 +171,17 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	return response
 
 
-url_rules = [
+def app_routes() -> list[Rule]:
+	try:
+		module = import_module("kadrovska.api")
+	except Exception as e:
+		print(traceback.format_exc())
+		return []
+
+	return getattr(module, "routes", [])
+
+
+url_rules: list[Rule] = [
 	# RPC calls
 	Rule("/method/login", endpoint=login),
 	Rule("/method/logout", endpoint=logout),
@@ -195,4 +208,8 @@ url_rules = [
 	# Collection level APIs
 	Rule("/doctype/<doctype>/meta", methods=["GET"], endpoint=get_meta),
 	Rule("/doctype/<doctype>/count", methods=["GET"], endpoint=count),
+	# Custom
+	# Rule("/resource/<resource>", methods=["GET"], endpoint=index),
+	# Rule("/resource/<resource>/<method>", methods=["GET"], endpoint=index),
+	*app_routes()
 ]
