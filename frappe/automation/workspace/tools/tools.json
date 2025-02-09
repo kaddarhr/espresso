@@ -320,7 +320,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-01-02 15:47:12.939478",
+ "modified": "2025-02-07 23:41:04.673095",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Tools",
@@ -330,8 +330,12 @@
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
- "roles": [],
- "sequence_id": 17.0,
+ "roles": [
+  {
+   "role": "Administrator"
+  }
+ ],
+ "sequence_id": 6.0,
  "shortcuts": [
   {
    "color": "Grey",
