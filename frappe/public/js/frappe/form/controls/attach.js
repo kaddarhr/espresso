@@ -1,17 +1,15 @@
+const INPUT_HTML = `
+	<input type="file">
+`
+
 frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.ControlData {
+	uploader = null
+
 	make_input() {
 		let me = this;
-		this.$input = $('<button class="btn btn-default btn-sm btn-attach">')
-			.html(__("Attach"))
+		this.$input = $(INPUT_HTML)
 			.prependTo(me.input_area)
-			.on({
-				click: function () {
-					me.on_attach_click();
-				},
-				attach_doc_image: function () {
-					me.on_attach_doc_image();
-				},
-			});
+
 		this.$value = $(
 			`<div class="attached-file flex justify-between align-center">
 				<div class="ellipsis">
@@ -19,13 +17,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
 				<div>
-					<a class="btn btn-xs btn-default" data-action="reload_attachment">${__("Reload File")}</a>
 					<a class="btn btn-xs btn-default" data-action="clear_attachment">${__("Clear")}</a>
 				</div>
 			</div>`
 		)
 			.prependTo(me.input_area)
 			.toggle(false);
+
+		this._init_file_uploader()
+
 		this.input = this.$input.get(0);
 		this.set_input_attributes();
 		this.has_input = true;
@@ -33,6 +33,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		frappe.utils.bind_actions_with_object(this.$value, this);
 		this.toggle_reload_button();
 	}
+
 	clear_attachment() {
 		let me = this;
 		if (this.frm) {
@@ -51,95 +52,136 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			this.refresh();
 		}
 	}
-	reload_attachment() {
-		if (this.file_uploader) {
-			this.file_uploader.uploader.upload_files();
-		}
-	}
-	on_attach_click() {
-		this.set_upload_options();
-		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
-	}
-	on_attach_doc_image() {
-		this.set_upload_options();
-		this.upload_options.restrictions.allowed_file_types = ["image/*"];
-		this.file_uploader = new frappe.ui.FileUploader(this.upload_options);
-	}
-	set_upload_options() {
-		let options = {
-			allow_multiple: false,
-			on_success: (file) => {
-				this.on_upload_complete(file);
-				this.toggle_reload_button();
-			},
-			restrictions: {},
-		};
-
-		if (this.frm) {
-			options.doctype = this.frm.doctype;
-			options.docname = this.frm.docname;
-			options.fieldname = this.df.fieldname;
-			options.make_attachments_public = this.df.make_attachment_public
-				? 1
-				: this.frm.meta.make_attachments_public;
-		}
-
-		if (this.df.options) {
-			Object.assign(options, this.df.options);
-		}
-		this.upload_options = options;
-	}
 
 	set_input(value, dataurl) {
 		this.last_value = this.value;
-		this.value = value;
-		if (this.value) {
-			// value can also be using this format: FILENAME,DATA_URL
-			// Important: We have to be careful because normal filenames may also contain ","
-			let file_url_parts = this.value.match(/^([^:]+),(.+):(.+)$/);
-			let filename;
-			if (file_url_parts) {
-				filename = file_url_parts[1];
-				dataurl = file_url_parts[2] + ":" + file_url_parts[3];
-			}
-			if (this.$input && this.$value) {
-				this.$input.toggle(false);
-				this.$value
-					.toggle(true)
-					.find(".attached-file-link")
-					.html(filename || this.value)
-					.attr("href", dataurl || this.value);
-			} else {
-				this.$wrapper.html(`
+		this.value = value.replace("/files/", "");
+		if (!this.value) {
+			this.$input.toggle(true);
+			this.$value.toggle(false);
+			return
+		}
+		// value can also be using this format: FILENAME,DATA_URL
+		// Important: We have to be careful because normal filenames may also contain ","
+		if (this._is_dataurl(value)) {
+			const file_url_parts = this.value.match(/^([^:]+),(.+):(.+)$/);
+			this.value = file_url_parts[1]
+			dataurl = file_url_parts[2] + ":" + file_url_parts[3]
+		}
+		if (!this.$input || !this.$value) {
+			console.error(`Attachment input state corrupt.`)
+			this.$wrapper.html(`
 					  <div class="attached-file flex justify-between align-center">
 						<div class="ellipsis">
 						  <a href="${dataurl || this.value}" target="_blank">${filename || this.value}</a>
 						</div>
 					  </div>
 				`);
-			}
-		} else {
-			this.$input.toggle(true);
-			this.$value.toggle(false);
 		}
+
+		this._remove_file_uploader()
+		this.$value
+			.toggle(true)
+			.find(".attached-file-link")
+			.html(this.value)
+			.attr("href", dataurl || this.value);
 	}
 
 	get_value() {
 		return this.value || null;
 	}
-
-	async on_upload_complete(attachment) {
-		if (this.frm) {
-			await this.parse_validate_and_set_in_model(attachment.file_url);
-			this.frm.attachments.update_attachment(attachment);
-			this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
-		}
-		this.set_value(attachment.file_url);
-	}
-
 	toggle_reload_button() {
 		this.$value
 			.find('[data-action="reload_attachment"]')
 			.toggle(this.file_uploader && this.file_uploader.uploader.files.length > 0);
+	}
+
+	_is_dataurl(value) {
+		return !!this.value.match(/^([^:]+),(.+):(.+)$/);
+	}
+
+	_init_file_uploader() {
+		FilePond.registerPlugin(FilePondPluginImagePreview)
+		this.uploader = FilePond.create(this.$input.get(0), {
+			name: this.df.fieldname,
+			required: this.df.reqd,
+			server: {
+				process: (fieldName, file, metadata, load, error, progress, abort, transfer, options) => {
+					// fieldName is the name of the input field
+					// file is the actual file object to send
+
+					const request = new XMLHttpRequest();
+					request.open('POST', '/api/method/upload_file', true);
+					request.setRequestHeader("Accept", "application/json");
+					request.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
+
+					const formData = new FormData();
+					formData.append("file", file, file.name);
+					formData.append("is_private", false);
+					formData.append("file_name", file.name);
+					formData.append("doctype", this.frm.doctype);
+					formData.append("docname", this.frm.docname);
+					formData.append("fieldname", this.df.fieldname);
+					// Should call the progress method to update the progress to 100% before calling load
+					// Setting computable to false switches the loading indicator to infinite mode
+					request.upload.onprogress = (e) => {
+						progress(e.lengthComputable, e.loaded, e.total);
+					};
+
+					// Should call the load method when done and pass the returned server file id
+					// this server file id is then used later on when reverting or restoring a file
+					// so your server knows which file to return without exposing that info to the client
+					request.onload = function () {
+						if (request.status >= 200 && request.status < 300) {
+							// the load method accepts either a string (id) or an object
+							const data = JSON.parse(request.response);
+							load(data.message.file_name);
+						} else {
+							// Can call the error method if something is wrong, should exit after
+							error('oh no');
+						}
+					};
+
+					request.send(formData);
+
+					// Should expose an abort method so the request can be cancelled
+					return {
+						abort: () => {
+							// This function is entered if the user has tapped the cancel button
+							request.abort();
+
+							// Let FilePond know the request has been cancelled
+							abort();
+						},
+					};
+				},
+				load: (source, load, error, progress, abort, headers) => {
+					const file = fetch(`/files/${source}`)
+						.then((res) => res.arrayBuffer())
+						.then((buffer) => new File([buffer], source));
+					error('oh my goodness');
+					progress(true, 0, 1024);
+					load(file);
+
+					// Should expose an abort method so the request can be cancelled
+					return {
+						abort: () => {
+							// User tapped cancel, abort our ongoing actions here
+
+							// Let FilePond know the request has been cancelled
+							abort();
+						},
+					};
+				},
+			},
+			credits: false
+		})
+	}
+
+	_remove_file_uploader() {
+		if (!this.uploader) return
+		this.uploader.destroy();
+		if (!this.$input) return
+		this.$input.toggle(false);
 	}
 };
