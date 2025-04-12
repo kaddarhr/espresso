@@ -255,7 +255,7 @@ frappe.ui.form.Form = class FrappeForm {
 				return true;
 			});
 			if (!dashboard_added) {
-				this.layout.tabs[0].wrapper.prepend(dashboard_parent);
+				// this.layout.tabs[0].wrapper.prepend(dashboard_parent);
 			}
 		} else {
 			this.layout.wrapper.find(".form-page").prepend(dashboard_parent);

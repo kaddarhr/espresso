@@ -55,7 +55,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 
 	set_input(value, dataurl) {
 		this.last_value = this.value;
-		this.value = value.replace("/files/", "");
+		if (value) {
+			this.value = value.replace("/files/", "");
+		}
 		if (!this.value) {
 			this.$input.toggle(true);
 			this.$value.toggle(false);
@@ -101,7 +103,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	}
 
 	_init_file_uploader() {
-		FilePond.registerPlugin(FilePondPluginImagePreview)
+		// FilePond.registerPlugin(FilePondPluginImagePreview)
 		this.uploader = FilePond.create(this.$input.get(0), {
 			name: this.df.fieldname,
 			required: this.df.reqd,

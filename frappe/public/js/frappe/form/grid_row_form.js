@@ -41,41 +41,26 @@ export default class GridRowForm {
 		if (!this.form_area) {
 			let template = `<div class="grid-form-heading">
 				<div class="toolbar grid-header-toolbar">
-					<span class="panel-title">
-						${__("Editing Row")} #<span class="grid-form-row-index"></span></span>
-					<span class="row-actions">
-						<button class="btn btn-secondary btn-sm pull-right grid-collapse-row">
-							${frappe.utils.icon("down")}
-						</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-move-row hidden-xs">
-							${__("Move")}</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-duplicate-row hidden-xs">
-							${frappe.utils.icon("duplicate")}
-							${__("Duplicate")}
-						</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-insert-row hidden-xs">
-							${__("Insert Above")}</button>
-						<button class="btn btn-secondary btn-sm pull-right grid-insert-row-below hidden-xs">
-							${__("Insert Below")}</button>
-						<button class="btn btn-danger btn-sm pull-right grid-delete-row">
-							${frappe.utils.icon("delete")}
-						</button>
-					</span>
+					<span class="panel-title">${this.row.doc.doctype}</span>
+
 				</div>
 			</div>
 			<div class="grid-form-body">
 				<div class="form-area"></div>
-				<div class="grid-footer-toolbar hidden-xs flex justify-between">
-					<div class="grid-shortcuts">
+				<div class="grid-footer-toolbar hidden-xs flex justify-flex-end">
+					<div class="grid-shortcuts hidden">
 						<span> ${frappe.utils.icon("keyboard", "md")} </span>
 						<span class="text-medium"> ${__("Shortcuts")}: </span>
 						<kbd>${__("Ctrl + Up")}</kbd> . <kbd>${__("Ctrl + Down")}</kbd> . <kbd>${__("ESC")}</kbd>
 					</div>
-					<span class="row-actions">
-						<button class="btn btn-secondary btn-sm pull-right grid-append-row">
+					<div class="row-actions flex">
+						<button class="btn btn-danger btn-sm grid-delete-row grid-append-row">
+							${frappe.utils.icon("delete")}
+						</button>
+						<button class="btn btn-secondary btn-sm grid-append-row">
 							${__("Insert Below")}
 						</button>
-					</span>
+					</div>
 				</div>
 			</div>`;
 
