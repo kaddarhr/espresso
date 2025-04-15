@@ -244,16 +244,16 @@ select.form-control {
 .frappe-control[data-fieldtype="Attach Image"] {
 	.attached-file {
 		position: relative;
-		padding: 6px 10px;
+		gap: 8px;
+		display: flex;
 		background: var(--control-bg);
 		border-radius: var(--border-radius);
-		@include get_textstyle("base", "regular");
 
 		.es-icon {
 			margin-right: 8px;
 		}
-		.btn {
-			padding: 0px 8px;
+		.form-control {
+			width: auto;
 		}
 	}
 }

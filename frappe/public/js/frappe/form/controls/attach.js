@@ -8,11 +8,11 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 	make_input() {
 		let me = this;
 		this.$input = $(INPUT_HTML)
-			.prependTo(me.input_area)
+		this.$input.prependTo(this.input_area)
 
 		this.$value = $(
-			`<div class="attached-file flex justify-between align-center">
-				<div class="ellipsis">
+			`<div class="attached-file">
+				<div class="ellipsis form-control btn">
 				${frappe.utils.icon("es-line-link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>
@@ -38,6 +38,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		let me = this;
 		if (this.frm) {
 			me.parse_validate_and_set_in_model(null);
+			this.uploader.replaceElement(this.$input.get(0));
 			me.refresh();
 			me.frm.attachments.remove_attachment_by_filename(me.value, async () => {
 				await me.parse_validate_and_set_in_model(null);
@@ -63,6 +64,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			this.$value.toggle(false);
 			return
 		}
+		const fileUrl= `/files/${this.value}`
 		// value can also be using this format: FILENAME,DATA_URL
 		// Important: We have to be careful because normal filenames may also contain ","
 		if (this._is_dataurl(value)) {
@@ -73,9 +75,9 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		if (!this.$input || !this.$value) {
 			console.error(`Attachment input state corrupt.`)
 			this.$wrapper.html(`
-					  <div class="attached-file flex justify-between align-center">
-						<div class="ellipsis">
-						  <a href="${dataurl || this.value}" target="_blank">${filename || this.value}</a>
+					  <div class="attached-file flex">
+						<div class="ellipsis form-control">
+						  <a href="${dataurl || fileUrl}" target="_blank">${filename || this.value}</a>
 						</div>
 					  </div>
 				`);
@@ -86,7 +88,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			.toggle(true)
 			.find(".attached-file-link")
 			.html(this.value)
-			.attr("href", dataurl || this.value);
+			.attr("href", dataurl || fileUrl);
 	}
 
 	get_value() {
@@ -107,6 +109,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 		this.uploader = FilePond.create(this.$input.get(0), {
 			name: this.df.fieldname,
 			required: this.df.reqd,
+			allowDrop: false,
 			server: {
 				process: (fieldName, file, metadata, load, error, progress, abort, transfer, options) => {
 					// fieldName is the name of the input field
@@ -133,10 +136,13 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 					// Should call the load method when done and pass the returned server file id
 					// this server file id is then used later on when reverting or restoring a file
 					// so your server knows which file to return without exposing that info to the client
+					const on_complete = (data) => this._on_upload_complete(data)
 					request.onload = function () {
 						if (request.status >= 200 && request.status < 300) {
 							// the load method accepts either a string (id) or an object
 							const data = JSON.parse(request.response);
+
+							on_complete(data.message);
 							load(data.message.file_name);
 						} else {
 							// Can call the error method if something is wrong, should exit after
@@ -182,8 +188,16 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 
 	_remove_file_uploader() {
 		if (!this.uploader) return
-		this.uploader.destroy();
+		this.uploader.restoreElement(this.$input.get(0))
 		if (!this.$input) return
 		this.$input.toggle(false);
+	}
+	async _on_upload_complete(attachment) {
+		if (this.frm) {
+			await this.parse_validate_and_set_in_model(attachment.file_url);
+			this.frm.attachments.update_attachment(attachment);
+			// this.frm.doc.docstatus == 1 ? this.frm.save("Update") : this.frm.save();
+		}
+		this.set_value(attachment.file_url);
 	}
 };

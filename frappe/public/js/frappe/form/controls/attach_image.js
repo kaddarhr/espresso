@@ -8,7 +8,7 @@ frappe.ui.form.ControlAttachImage = class ControlAttachImage extends frappe.ui.f
 			placement: "top",
 			content: () => {
 				return `<div>
-					<img src="${this.get_value()}"
+					<img src="/files/${this.get_value()}"
 						width="150px"
 						style="object-fit: contain;"
 					/>
