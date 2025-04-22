@@ -13,8 +13,8 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				},
 			});
 		this.$value = $(
-			`<div class="attached-file">
-				<div class="ellipsis form-control btn">
+			`<div class="attached-file form-control flex justify-between align-center">
+				<div class="ellipsis">
 				${frappe.utils.icon("es-line-link", "sm")}
 					<a class="attached-file-link" target="_blank"></a>
 				</div>

@@ -1,14 +1,5 @@
 @import "../common/form.scss";
 
-.form-page {
-	--form-border-color: var(--border-color);
-	--form-section-heading-padding-x: 0;
-	--form-section-heading-padding-y: 0;
-	--form-section-font-weight: var(--weight-medium);
-	--form-section-font-size: var(--text-lg);
-	--form-section-heading-border-color: var(--form-border-color);
-}
-
 .tooltip-content {
   position: absolute;
   bottom: 100%;
@@ -31,12 +22,6 @@
   pointer-events: auto;
 }
 
-.std-form-layout > .form-layout {
-	display: flex;
-	flex-direction: column;
-	gap: 24px;
-}
-
 .std-form-layout > .form-layout > .form-page {
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border-color);
@@ -56,14 +41,13 @@
 
   .section-head {
     @extend .head-title;
+    @include get_textstyle("lg", "semibold");
     color: var(--text-color);
     width: 100%;
-    padding: var(--form-section-heading-padding-y) var(--form-section-heading-padding-x);
+    padding: var(--padding-sm) var(--padding-md);
     margin: 0;
+    margin-bottom: var(--margin-sm);
     cursor: default;
-	  font-size: var(--form-section-font-size);
-	  font-weight: var(--form-section-font-weight);
-	  border-bottom: 1px solid var(--form-section-heading-border-color);
 
     .collapse-indicator {
       color: var(--text-muted);

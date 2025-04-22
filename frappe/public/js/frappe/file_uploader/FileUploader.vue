@@ -15,7 +15,7 @@
 					{{ __("Drag and drop files here or upload from") }}
 				</div>
 				<div class="mt-2 text-center">
-					<button class="btn btn-file-upload" @click="browse_files">
+					<button class="btn btn-file-upload">
 						<svg
 							width="30"
 							height="30"
