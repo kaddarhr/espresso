@@ -17,23 +17,6 @@
 					{{ file_size }}
 				</span>
 			</div>
-
-			<div class="flex config-area">
-				<label v-if="is_optimizable" class="frappe-checkbox"
-					><input
-						type="checkbox"
-						:checked="optimize"
-						@change="emit('toggle_optimize')"
-					/>{{ __("Optimize") }}</label
-				>
-				<label class="frappe-checkbox"
-					><input
-						type="checkbox"
-						:checked="file.private"
-						@change="emit('toggle_private')"
-					/>{{ __("Private") }}</label
-				>
-			</div>
 			<div>
 				<span v-if="file.error_message" class="file-error text-danger">
 					{{ file.error_message }}
@@ -52,12 +35,7 @@
 			<div v-if="uploaded" v-html="frappe.utils.icon('solid-success', 'lg')"></div>
 			<div v-if="file.failed" v-html="frappe.utils.icon('solid-error', 'lg')"></div>
 			<div class="file-action-buttons">
-				<button
-					v-if="is_cropable"
-					class="btn btn-crop muted"
-					@click="emit('toggle_image_cropper')"
-					v-html="frappe.utils.icon('crop', 'md')"
-				></button>
+
 				<button
 					v-if="!uploaded && !file.uploading && !file.failed"
 					class="btn muted"
