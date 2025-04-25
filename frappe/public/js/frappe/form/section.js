@@ -27,7 +27,7 @@ export default class Section {
 
 	make() {
 		let make_card = this.card_layout;
-		this.wrapper = $(`<div class="row
+		this.wrapper = $(`<fieldset class="row
 				${this.df.is_dashboard_section ? "form-dashboard-section" : "form-section"}
 				${make_card ? "card-section" : ""}" data-fieldname="${this.df.fieldname}">
 			`).appendTo(this.parent);
@@ -62,10 +62,10 @@ export default class Section {
 
 	make_head() {
 		this.head = $(`
-			<div class="section-head">
+			<legend class="section-head">
 				${__(this.df.label, null, this.df.parent)}
 				<span class="ml-2 collapse-indicator mb-1"></span>
-			</div>
+			</legend>
 		`);
 
 		this.head.appendTo(this.wrapper);

@@ -222,7 +222,8 @@ frappe.ui.form.Form = class FrappeForm {
 
 	setup_std_layout() {
 		this.form_wrapper = $("<div></div>").appendTo(this.layout_main);
-		this.body = $('<div class="std-form-layout"></div>').appendTo(this.form_wrapper);
+		this.body = $('<form class="std-form-layout"></form>').appendTo(this.form_wrapper);
+		this.form = this.form_wrapper.find("form").on("submit", () => false);
 
 		// only tray
 		this.meta.section_style = "Simple"; // always simple!

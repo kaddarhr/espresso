@@ -12,12 +12,10 @@ export default class Column {
 	make() {
 		this.wrapper = $(`
 			<div class="form-column" data-fieldname="${this.df.fieldname}">
-				<form>
-				</form>
 			</div>
 		`).appendTo(this.section.body);
 
-		this.form = this.wrapper.find("form").on("submit", () => false);
+		this.form = this.wrapper;
 
 		if (this.df.description) {
 			$(`

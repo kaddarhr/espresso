@@ -9,7 +9,14 @@ frappe.ui.form.ControlInput = class ControlInput extends (
 
     // set description
     this.set_max_width();
+	this.make_accessible()
   }
+
+  make_accessible() {
+	this.$wrapper.find("label")?.attr("for", this.df.fieldname);
+	this.$wrapper.find("input")?.attr("name", this.df.fieldname);
+  }
+
   make_wrapper() {
     if (this.only_input) {
       this.$wrapper = $('<div class="form-group frappe-control">').appendTo(
@@ -20,7 +27,7 @@ frappe.ui.form.ControlInput = class ControlInput extends (
         `<div class="frappe-control">
 				<div class="form-group">
 					<div class="clearfix">
-						<label class="control-label" style="padding-right: 0px;"></label>
+						<label for="${this.df.fieldname}" class="control-label" style="padding-right: 0px;"></label>
 						<span class="help"></span>
 					</div>
 					<div class="control-input-wrapper">
@@ -144,6 +151,7 @@ frappe.ui.form.ControlInput = class ControlInput extends (
       me.set_bold();
       me.set_required();
     }
+	this.make_accessible()
   }
 
   can_write() {

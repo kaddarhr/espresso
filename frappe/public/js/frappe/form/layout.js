@@ -660,7 +660,8 @@ frappe.ui.form.Layout = class Layout {
 		} else if (field.editor) {
 			field.editor.set_focus();
 		} else if (field.$input) {
-			field.$input.focus();
+				field.$input.trigger("focus");
+
 		}
 	}
 
